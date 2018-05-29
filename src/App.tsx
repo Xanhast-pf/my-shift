@@ -3,11 +3,11 @@ import "./App.css";
 import logo from "./logo.svg";
 import { Bar } from "components/Bar/index";
 import { createMuiTheme, MuiThemeProvider } from "@material-ui/core/styles";
-import blue from "@material-ui/core/colors/blue";
+import cyan from "@material-ui/core/colors/cyan";
 
 const theme = createMuiTheme({
     palette: {
-        primary: blue,
+        primary: cyan,
     },
 });
 

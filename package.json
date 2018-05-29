@@ -2,7 +2,7 @@
   "name": "my-shift",
   "version": "0.0.1",
   "description": "Manage shifts",
-  "main": "index.ts",
+  "main": "index.tsx",
   "repository": "git@github.com:Xanhast-pf/my-shift.git",
   "author": "Xanhast <jbouquet47@gmail.com>",
   "license": "MIT",
