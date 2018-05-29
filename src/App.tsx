@@ -19,9 +19,9 @@ class App extends React.Component {
                     <Bar />
                     <header className="App-header">
                         <img src={logo} className="App-logo" alt="logo" />
-                        <h1 className="App-title">Welcome to My awesome app</h1>
+                        <h1 className="App-title">Coucou mon coeur à moi</h1>
                     </header>
-                    <p>Yoohooo!!!</p>
+                    <p>Je t'aime :)</p>
                 </div>
             </MuiThemeProvider>
         );
