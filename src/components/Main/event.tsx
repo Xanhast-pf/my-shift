@@ -7,32 +7,41 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import { store } from "./index";
 import { observer } from "mobx-react";
+import moment from "moment";
 
 @observer
-class AddEvent extends React.Component {
+class DisplayEvent extends React.Component {
     public render() {
+        if (!store.selectedEvent) return null;
+
         return (
             <Dialog
-                open={store.openForm}
+                open={store.selectedEvent !== null}
                 onClose={() => {
-                    store.setSelectedSlot(null);
-                    store.setOpenForm(false);
+                    store.selectEvent(null);
                 }}
                 aria-labelledby="alert-dialog-title"
                 aria-describedby="alert-dialog-description"
             >
-                <DialogTitle id="alert-dialog-title">{"Add event"}</DialogTitle>
+                <DialogTitle id="alert-dialog-title">
+                    {store.selectedEvent!.title}
+                </DialogTitle>
                 <DialogContent>
                     <DialogContentText id="alert-dialog-description">
-                        Please fill the form below
+                        Description: {store.selectedEvent!.desc || "none"}
+                    </DialogContentText>
+                    <DialogContentText id="alert-dialog-start">
+                        From: {moment(store.selectedEvent!.start).format("LLL")}
+                    </DialogContentText>
+                    <DialogContentText id="alert-dialog-end">
+                        to: {moment(store.selectedEvent!.end).format("LLL")}
                     </DialogContentText>
                 </DialogContent>
                 <DialogActions>
                     <Button
                         variant="raised"
                         onClick={() => {
-                            store.setSelectedSlot(null);
-                            store.setOpenForm(false);
+                            store.selectEvent(null);
                         }}
                         color="primary"
                     >
@@ -40,8 +49,7 @@ class AddEvent extends React.Component {
                     </Button>
                     <Button
                         onClick={() => {
-                            store.setSelectedSlot(null);
-                            store.setOpenForm(false);
+                            store.selectEvent(null);
                         }}
                         color="primary"
                         autoFocus
@@ -54,5 +62,5 @@ class AddEvent extends React.Component {
     }
 }
 
-export { AddEvent };
-export default AddEvent;
+export { DisplayEvent };
+export default DisplayEvent;

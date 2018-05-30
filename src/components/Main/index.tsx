@@ -11,6 +11,7 @@ import { observer } from "mobx-react";
 import "./style.css";
 import { style } from "typestyle";
 import { AddEvent } from "./form";
+import { DisplayEvent } from "./event";
 import uuid from "uuid";
 
 BigCalendar.momentLocalizer(moment);
@@ -34,6 +35,8 @@ interface State {
     setSelectedSlot: (slot: Slot | null) => void;
     addEvent: (event: IEvent) => void;
     removeEvent: (id: string) => void;
+    selectedEvent: IEvent | null;
+    selectEvent: (event: IEvent | null) => void;
 }
 
 interface Slot {
@@ -56,12 +59,15 @@ export const store: State = observable({
     events: [
         {
             id: uuid.v4(),
-            title: "All Day Event very long title",
-            start: moment().toDate(),
-            end: moment()
-                .add(1, "day")
+            title: "Vacances",
+            start: moment("2018-05-31")
+                .startOf("day")
                 .toDate(),
-            desc: "Description",
+            end: moment("2018-05-31")
+                .endOf("day")
+                .toDate(),
+            desc: "C'est la journée de super vacances!!!",
+            allDay: true,
         },
     ],
     height: window.innerHeight,
@@ -72,6 +78,8 @@ export const store: State = observable({
     addEvent: (event: IEvent) => store.events.push(event),
     removeEvent: (id: string) =>
         (store.events = store.events.filter(e => e.id === id)),
+    selectedEvent: null,
+    selectEvent: (event: IEvent | null) => (store.selectedEvent = event),
 } as State);
 
 @observer
@@ -89,7 +97,7 @@ class Main extends React.Component {
                                 defaultDate={moment().toDate()}
                                 selectable
                                 onSelectEvent={(event: IEvent) =>
-                                    alert(event.title)
+                                    store.selectEvent(event)
                                 }
                                 onSelectSlot={slotInfo => {
                                     store.setSelectedSlot(slotInfo);
@@ -99,6 +107,7 @@ class Main extends React.Component {
                         </CardContent>
                     </Card>
                     <AddEvent />
+                    <DisplayEvent />
                 </div>
             </MuiThemeProvider>
         );
