@@ -6,13 +6,17 @@ import Card from "@material-ui/core/Card";
 import CardContent from "@material-ui/core/CardContent";
 import BigCalendar from "react-big-calendar";
 import moment from "moment";
-import { observable } from "mobx";
 import { observer } from "mobx-react";
 import "react-big-calendar/lib/css/react-big-calendar.css";
 import { style } from "typestyle";
 import { AddEvent } from "./form";
 import { DisplayEvent } from "./event";
-import uuid from "uuid";
+import { store } from "libs/mobx";
+import { formState } from "./event";
+/* eslint-disable */
+import MuiPickersUtilsProvider from "material-ui-pickers/utils/MuiPickersUtilsProvider";
+// pick utils
+import MomentUtils from "material-ui-pickers/utils/moment-utils";
 
 BigCalendar.momentLocalizer(moment);
 
@@ -22,31 +26,14 @@ const theme = createMuiTheme({
     },
 });
 
-window.addEventListener("resize", function() {
-    store.height = this.window.innerHeight;
-});
-
-interface State {
-    events: Array<IEvent>;
-    height: number;
-    openForm: boolean;
-    setOpenForm: (bool: boolean) => void;
-    selectedSlot: Slot | null;
-    setSelectedSlot: (slot: Slot | null) => void;
-    addEvent: (event: IEvent) => void;
-    removeEvent: (id: string) => void;
-    selectedEvent: IEvent | null;
-    selectEvent: (event: IEvent | null) => void;
-}
-
-interface Slot {
+export interface Slot {
     start: string | Date;
     end: string | Date;
     slots: Date[] | string[];
     action: "select" | "click" | "doubleClick";
 }
 
-interface IEvent {
+export interface IEvent {
     id: string;
     title: string;
     allDay?: boolean;
@@ -55,64 +42,79 @@ interface IEvent {
     desc?: string;
 }
 
-export const store: State = observable({
-    events: [
-        {
-            id: uuid.v4(),
-            title: "Vacances",
-            start: moment("2018-05-31")
-                .startOf("day")
-                .toDate(),
-            end: moment("2018-05-31")
-                .endOf("day")
-                .toDate(),
-            desc: "C'est la journée de super vacances!!!",
-            allDay: true,
-        },
-    ],
-    height: window.innerHeight,
-    openForm: false,
-    setOpenForm: (bool: boolean) => (store.openForm = bool),
-    selectedSlot: null,
-    setSelectedSlot: (slot: Slot | null) => (store.selectedSlot = slot),
-    addEvent: (event: IEvent) => store.events.push(event),
-    removeEvent: (id: string) =>
-        (store.events = store.events.filter(e => e.id === id)),
-    selectedEvent: null,
-    selectEvent: (event: IEvent | null) => (store.selectedEvent = event),
-} as State);
-
 @observer
 class Main extends React.Component {
     public render() {
         return (
             <MuiThemeProvider theme={theme}>
-                <div style={{ height: store.height, backgroundColor: "pink" }}>
-                    <Bar />
-                    <Card>
-                        <CardContent>
-                            <BigCalendar
-                                className={calendarStyle}
-                                events={[...store.events]}
-                                defaultDate={moment().toDate()}
-                                selectable
-                                onSelectEvent={(event: IEvent) =>
-                                    store.selectEvent(event)
-                                }
-                                onSelectSlot={slotInfo => {
-                                    store.setSelectedSlot(slotInfo);
-                                    store.setOpenForm(true);
-                                }}
-                            />
-                        </CardContent>
-                    </Card>
-                    <AddEvent />
-                    <DisplayEvent />
-                </div>
+                <MuiPickersUtilsProvider utils={MomentUtils}>
+                    <div
+                        style={{
+                            height: store.height,
+                            backgroundColor: "pink",
+                        }}
+                    >
+                        <Bar />
+                        <Card>
+                            <CardContent>
+                                <BigCalendar
+                                    className={calendarStyle}
+                                    events={[...store.events]}
+                                    defaultDate={moment().toDate()}
+                                    selectable
+                                    onSelectEvent={(event: IEvent) => {
+                                        store.selectEvent(event);
+                                        formState.set(event);
+                                    }}
+                                    onSelectSlot={(slotInfo: Slot) => {
+                                        const init = {
+                                            id: "",
+                                            title: "",
+                                            desc: "",
+                                            start: moment(slotInfo.start)
+                                                .set("hour", 9)
+                                                .toDate(),
+                                            end: moment(slotInfo.end)
+                                                .set("hour", 21)
+                                                .toDate(),
+                                        };
+                                        store.selectEvent(init);
+                                        formState.set(init);
+                                        store.setSelectedSlot(slotInfo);
+                                    }}
+                                    eventPropGetter={eventStyleGetter}
+                                />
+                            </CardContent>
+                        </Card>
+                        <AddEvent />
+                        <DisplayEvent />
+                    </div>
+                </MuiPickersUtilsProvider>
             </MuiThemeProvider>
         );
     }
 }
+
+const eventStyleGetter = (
+    event: IEvent,
+    start: Date,
+    end: Date,
+    isSelected: boolean,
+) => {
+    console.log(event);
+    var backgroundColor = indigo[500];
+    var style = {
+        backgroundColor,
+        borderRadius: "0px",
+        opacity: 0.8,
+        color: "black",
+        border: "0px",
+        display: "block",
+    };
+    return {
+        style: style,
+    };
+};
 
 const calendarStyle = style({
     cursor: "pointer",
