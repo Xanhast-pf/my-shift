@@ -8,7 +8,7 @@ import BigCalendar from "react-big-calendar";
 import moment from "moment";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import "./style.css";
+import "react-big-calendar/lib/css/react-big-calendar.css";
 import { style } from "typestyle";
 import { AddEvent } from "./form";
 import { DisplayEvent } from "./event";
