@@ -8,8 +8,10 @@ import BigCalendar from "react-big-calendar";
 import moment from "moment";
 import { observable } from "mobx";
 import { observer } from "mobx-react";
-import "react-big-calendar/lib/css/react-big-calendar.css";
+import "./style.css";
 import { style } from "typestyle";
+import { AddEvent } from "./form";
+import uuid from "uuid";
 
 BigCalendar.momentLocalizer(moment);
 
@@ -26,10 +28,23 @@ window.addEventListener("resize", function() {
 interface State {
     events: Array<IEvent>;
     height: number;
+    openForm: boolean;
+    setOpenForm: (bool: boolean) => void;
+    selectedSlot: Slot | null;
+    setSelectedSlot: (slot: Slot | null) => void;
+    addEvent: (event: IEvent) => void;
+    removeEvent: (id: string) => void;
+}
+
+interface Slot {
+    start: string | Date;
+    end: string | Date;
+    slots: Date[] | string[];
+    action: "select" | "click" | "doubleClick";
 }
 
 interface IEvent {
-    id: number;
+    id: string;
     title: string;
     allDay?: boolean;
     start: Date;
@@ -40,15 +55,23 @@ interface IEvent {
 export const store: State = observable({
     events: [
         {
-            id: 0,
+            id: uuid.v4(),
             title: "All Day Event very long title",
-            allDay: true,
             start: moment().toDate(),
-            end: moment().toDate(),
+            end: moment()
+                .add(1, "day")
+                .toDate(),
             desc: "Description",
         },
     ],
     height: window.innerHeight,
+    openForm: false,
+    setOpenForm: (bool: boolean) => (store.openForm = bool),
+    selectedSlot: null,
+    setSelectedSlot: (slot: Slot | null) => (store.selectedSlot = slot),
+    addEvent: (event: IEvent) => store.events.push(event),
+    removeEvent: (id: string) =>
+        (store.events = store.events.filter(e => e.id === id)),
 } as State);
 
 @observer
@@ -61,38 +84,36 @@ class Main extends React.Component {
                     <Card>
                         <CardContent>
                             <BigCalendar
-                                className={style({
-                                    minHeight: store.height - 56,
-                                    [`${theme.breakpoints.up(
-                                        "xs",
-                                    )} and (orientation: landscape)`]: {
-                                        minHeight: store.height - 48,
-                                    },
-                                    [theme.breakpoints.up("sm")]: {
-                                        minHeight: store.height - 64,
-                                    },
-                                })}
-                                events={[
-                                    {
-                                        id: 0,
-                                        title: "All Day Event very long title",
-                                        allDay: true,
-                                        start: moment().toDate(),
-                                        end: moment().toDate(),
-                                        desc: "Description",
-                                    },
-                                ]}
-                                startAccessor="startDate"
-                                endAccessor="endDate"
-                                defaultView="month"
+                                className={calendarStyle}
+                                events={[...store.events]}
                                 defaultDate={moment().toDate()}
+                                selectable
+                                onSelectEvent={(event: IEvent) =>
+                                    alert(event.title)
+                                }
+                                onSelectSlot={slotInfo => {
+                                    store.setSelectedSlot(slotInfo);
+                                    store.setOpenForm(true);
+                                }}
                             />
                         </CardContent>
                     </Card>
+                    <AddEvent />
                 </div>
             </MuiThemeProvider>
         );
     }
 }
+
+const calendarStyle = style({
+    cursor: "pointer",
+    minHeight: store.height - 96,
+    [`${theme.breakpoints.up("xs")} and (orientation: landscape)`]: {
+        minHeight: store.height - 88,
+    },
+    [theme.breakpoints.up("sm")]: {
+        minHeight: store.height - 104,
+    },
+});
 
 export default Main;
