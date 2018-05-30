@@ -10,11 +10,13 @@ import { observable } from "mobx";
 import moment from "moment";
 import uuid from "uuid";
 import TextField from "@material-ui/core/TextField";
+import MenuItem from "@material-ui/core/MenuItem";
 import DateTimePicker from "material-ui-pickers/DateTimePicker";
 import { store } from "libs/mobx";
 import DeleteIcon from "@material-ui/icons/Delete";
 
 interface FormState {
+    id: string;
     formTitle: string;
     title: string;
     description: string;
@@ -22,10 +24,12 @@ interface FormState {
     end: Date;
     set: (event: IEvent | null) => void;
     openDelete: boolean;
+    eventType: string;
 }
 
 export const formState: FormState = observable({
     formTitle: "New Event",
+    id: "",
     title: "",
     description: "",
     start: new Date(),
@@ -33,31 +37,46 @@ export const formState: FormState = observable({
     set: (event: IEvent | null) => {
         if (event) {
             formState.formTitle = "Event";
+            formState.id = event.id;
             formState.title = event.title;
             formState.description = event.desc || "";
             formState.start = event.start;
             formState.end = event.end;
+            formState.eventType = event.eventType;
         } else {
             formState.formTitle = "New Event";
+            formState.id = "";
             formState.title = "";
             formState.description = "";
             formState.start = new Date();
             formState.end = new Date();
+            formState.eventType = "common";
         }
     },
     openDelete: false,
+    eventType: "common",
 });
 
 @observer
 class DisplayEvent extends React.Component {
     onSave() {
-        store.events.push({
-            id: uuid.v4(),
-            title: formState.title,
-            desc: formState.description,
-            start: moment(formState.start).toDate(),
-            end: moment(formState.end).toDate(),
-        });
+        if (formState.id === "") {
+            store.events.push({
+                id: uuid.v4(),
+                title: formState.title,
+                desc: formState.description,
+                start: moment(formState.start).toDate(),
+                end: moment(formState.end).toDate(),
+                eventType: formState.eventType,
+            });
+        } else {
+            const index = store.events.findIndex(e => e.id === formState.id);
+            store.events[index].title = formState.title;
+            store.events[index].desc = formState.description;
+            store.events[index].start = moment(formState.start).toDate();
+            store.events[index].end = moment(formState.end).toDate();
+            store.events = [...store.events];
+        }
         store.selectEvent(null);
         formState.set(null);
     }
@@ -144,6 +163,21 @@ class DisplayEvent extends React.Component {
                             margin="normal"
                         />
                     </div>
+                    <div>
+                        <TextField
+                            id="select-eventtype"
+                            select
+                            label="Event Type"
+                            helperText="Please Choose"
+                            value={formState.eventType}
+                            onChange={(event: any) =>
+                                (formState.eventType = event.target.value)
+                            }
+                            margin="normal"
+                        >
+                            {eventTypeMenu()}
+                        </TextField>
+                    </div>
                 </DialogContent>
                 <DialogActions>
                     <Button
@@ -206,6 +240,27 @@ class DisplayEvent extends React.Component {
         );
     }
 }
+
+const eventTypeMenu = () => {
+    const menuItems: Array<JSX.Element> = [];
+    for (var i in store.eventType) {
+        menuItems.push(
+            <MenuItem key={i} value={i}>
+                <div
+                    style={{
+                        height: 16,
+                        width: 32,
+                        backgroundColor: store.eventType[i].color,
+                        marginRight: 16,
+                        borderRadius: 2,
+                    }}
+                />
+                {store.eventType[i].name}
+            </MenuItem>,
+        );
+    }
+    return menuItems;
+};
 
 export { DisplayEvent };
 export default DisplayEvent;

@@ -1,5 +1,5 @@
 import { observable, autorun } from "mobx";
-import { IEvent, Slot } from "components/Main";
+import { IEvent, Slot } from "pages/Main";
 import throttle from "lodash/throttle";
 
 interface State {
@@ -13,23 +13,39 @@ interface State {
     removeEvent: (id: string) => void;
     selectedEvent: IEvent | null;
     selectEvent: (event: IEvent | null) => void;
+    eventType: { [key: string]: EventType };
 }
+export interface EventType {
+    name: string;
+    color: string;
+}
+
+const eventTypeDefault = {
+    common: {
+        name: "Common",
+        color: "#3f51b5",
+    },
+    important: {
+        name: "Important",
+        color: "#F44336",
+    },
+};
 
 export const loadState = () => {
     console.log("Loading State");
     try {
         const serializedState = localStorage.getItem("events");
         if (serializedState === null) {
-            return [];
+            return { events: [], eventType: eventTypeDefault };
         }
         return JSON.parse(serializedState);
     } catch (err) {
-        return [];
+        return { events: [], eventType: eventTypeDefault };
     }
 };
 
 export const store: State = observable({
-    events: loadState(),
+    events: loadState().events,
     height: window.innerHeight,
     openForm: false,
     setOpenForm: (bool: boolean) => (store.openForm = bool),
@@ -40,15 +56,19 @@ export const store: State = observable({
         (store.events = store.events.filter(e => e.id === id)),
     selectedEvent: null,
     selectEvent: (event: IEvent | null) => (store.selectedEvent = event),
+    eventType: loadState().eventType,
 } as State);
 
 window.addEventListener("resize", function() {
     store.height = this.window.innerHeight;
 });
 
-export const saveState = (event: IEvent[]) => {
+export const saveState = (
+    events: IEvent[],
+    eventType: { [key: string]: EventType },
+) => {
     try {
-        const serializedState = JSON.stringify(event);
+        const serializedState = JSON.stringify({ events, eventType });
         localStorage.setItem("events", serializedState);
     } catch (err) {
         // Ignore write errors.
@@ -58,6 +78,6 @@ export const saveState = (event: IEvent[]) => {
 
 autorun(
     throttle(() => {
-        saveState(store.events);
+        saveState(store.events, store.eventType);
     }, 1000),
 );
