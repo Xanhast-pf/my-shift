@@ -166,6 +166,7 @@ class DisplayEvent extends React.Component {
                     <div>
                         <TextField
                             id="select-eventtype"
+                            fullWidth
                             select
                             label="Event Type"
                             helperText="Please Choose"
@@ -184,6 +185,7 @@ class DisplayEvent extends React.Component {
                         variant="raised"
                         onClick={this.onSave}
                         color="primary"
+                        disabled={!isValid()}
                     >
                         Save
                     </Button>
@@ -260,6 +262,15 @@ const eventTypeMenu = () => {
         );
     }
     return menuItems;
+};
+
+const isValid = (): boolean => {
+    if (!formState.title) return false;
+    if (!formState.start) return false;
+    if (!formState.end) return false;
+    if (moment(formState.start).isAfter(moment(formState.end))) return false;
+
+    return true;
 };
 
 export { DisplayEvent };

@@ -109,7 +109,6 @@ const eventStyleGetter = (
     var style = {
         backgroundColor,
         borderRadius: "0px",
-        opacity: 0.8,
         color: "black",
         border: "0px",
         display: "block",
